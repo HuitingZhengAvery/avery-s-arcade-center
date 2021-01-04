@@ -8,6 +8,8 @@ class Pacman(GameCharacter):
     def __init__(self, maze, game_controller):
         self.CHAR_WIDTH = 100
         self.CHAR_HEIGHT = 100
+        self.cur_dir = 0
+        self.next_dir = 0
         self.maze = maze
         self.gc = game_controller
         self.x = maze.WIDTH/2
@@ -65,28 +67,20 @@ class Pacman(GameCharacter):
 
         # If the game is over and Pacman loses, top moving and
         # Open mouth to oblivion.
-        if self.gc.pinky_wins:
+        elif self.gc.pinky_wins:
             self.open_close = 1
             self.x_add = 0
             self.y_add = 0
-
+        else:
+            
+            self.move_pacman()
+            self.x = self.x + self.x_add
+            self.y = self.y + self.y_add
+            self.maze.eat_dots(self.x, self.y)
         self.mouth_angle = self.mouth_angle + self.open_close
-        self.x = self.x + self.x_add
-        self.y = self.y + self.y_add
-        self.maze.eat_dots(self.x, self.y)
-
-    def control(self, keyCode):
-        """Handles keyboard input for PacMan"""
-        if (keyCode == DOWN and (self.on_left or self.on_right)):
-            if self.on_left:
-                self.x = self.maze.LEFT_VERT
-            else:
-                self.x = self.maze.RIGHT_VERT
-            self.rot_begin = self.MOUTH_DOWN_BEGIN_ANGLE
-            self.rot_end = self.MOUTH_DOWN_END_ANGLE
-            self.x_add = 0
-            self.y_add = self.velocity
-        elif (keyCode == UP and (self.on_left or self.on_right)):
+    
+    def move_pacman(self):
+        if (self.cur_dir == 1 and (self.on_left or self.on_right)):
             if self.on_left:
                 self.x = self.maze.LEFT_VERT
             else:
@@ -95,7 +89,16 @@ class Pacman(GameCharacter):
             self.rot_end = self.MOUTH_UP_END_ANGLE
             self.x_add = 0
             self.y_add = -(self.velocity)
-        elif (keyCode == LEFT and (self.on_top or self.on_bottom)):
+        elif (self.cur_dir == 2 and (self.on_left or self.on_right)):
+            if self.on_left:
+                self.x = self.maze.LEFT_VERT
+            else:
+                self.x = self.maze.RIGHT_VERT
+            self.rot_begin = self.MOUTH_DOWN_BEGIN_ANGLE
+            self.rot_end = self.MOUTH_DOWN_END_ANGLE
+            self.x_add = 0
+            self.y_add = self.velocity          
+        elif self.cur_dir == 3 and (self.on_top or self.on_bottom):
             if self.on_top:
                 self.y = self.maze.TOP_HORIZ
             else:
@@ -104,7 +107,7 @@ class Pacman(GameCharacter):
             self.rot_end = self.MOUTH_LEFT_END_ANGLE
             self.x_add = -(self.velocity)
             self.y_add = 0
-        elif (keyCode == RIGHT and (self.on_top or self.on_bottom)):
+        elif self.cur_dir == 4 and (self.on_top or self.on_bottom):
             if self.on_top:
                 self.y = self.maze.TOP_HORIZ
             else:
@@ -112,4 +115,15 @@ class Pacman(GameCharacter):
             self.rot_begin = self.MOUTH_RIGHT_BEGIN_ANGLE
             self.rot_end = self.MOUTH_RIGHT_END_ANGLE
             self.x_add = self.velocity
-            self.y_add = 0
+            self.y_add = 0        
+        
+    def control(self, keyCode):
+        """Handles keyboard input for PacMan"""
+        if keyCode == UP:
+            self.cur_dir = 1
+        if keyCode == DOWN:
+            self.cur_dir = 2
+        if keyCode == LEFT:
+            self.cur_dir = 3
+        if keyCode == RIGHT:
+            self.cur_dir = 4
